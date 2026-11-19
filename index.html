@@ -78,9 +78,8 @@
   </style>
 </head>
 <body>
-  <h3>✨ Gemini AI Assistant</h3>
+  <h3>✨ Gemini AI Assistant v4</h3>
 
-  <!-- Pengaturan API Key & Model -->
   <div class="card">
     <label for="apiKey">Gemini API Key</label>
     <div style="display: flex; gap: 6px; margin-bottom: 4px;">
@@ -89,13 +88,14 @@
     </div>
     <div id="keyStatus" class="status"></div>
 
-    <label for="modelSelect" style="margin-top: 8px;">Pilih Model Gemini</label>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-bottom: 4px;">
+      <label for="modelSelect" style="margin: 0;">Pilih Model Gemini</label>
+      <a href="#" onclick="muatDaftarModel(); return false;" style="font-size: 11px; color: #1a73e8;">Muat Ulang Model</a>
+    </div>
     <select id="modelSelect">
-      <option value="gemini-3.8-flash">gemini-3.8-flash (Utama - Cepat)</option>
-      <option value="gemini-3.8-flash-lite">gemini-3.8-flash-lite (Anti Sibuk / Ringan)</option>
-      <option value="gemini-3.8-pro">gemini-3.8-pro (Penalaran Tinggi / Pro)</option>
-      <option value="gemini-3.5-flash">gemini-3.5-flash (Cadangan Stabil)</option>
-      <option value="gemini-3.5-pro">gemini-3.5-pro (Cadangan Pro)</option>
+      <option value="gemini-3.8-flash-lite">gemini-3.8-flash-lite</option>
+      <option value="gemini-3.8-flash">gemini-3.8-flash</option>
+      <option value="gemini-3.8-pro">gemini-3.8-pro</option>
     </select>
 
     <div class="checkbox-row">
@@ -104,7 +104,6 @@
     </div>
   </div>
 
-  <!-- Area Perintah -->
   <div class="card">
     <label for="promptInput">Perintah / Prompt</label>
     <textarea id="promptInput" placeholder="Tulis pertanyaan, atau blok teks di Word lalu klik tombol aksi cepat di bawah..."></textarea>
@@ -120,13 +119,12 @@
     </div>
   </div>
 
-  <!-- Hasil Jawaban -->
   <div class="card">
     <label>Hasil Jawaban Gemini</label>
     <div id="outputBox">Jawaban akan muncul di sini...</div>
     <button class="success" onclick="sisipkanKeWord()">+ Sisipkan ke Dokumen Word</button>
   </div>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
