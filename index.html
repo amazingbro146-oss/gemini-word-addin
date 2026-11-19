@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gemini AI for Word</title>
-  <!-- Library Wajib Office.js -->
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <style>
     body {
@@ -24,7 +23,7 @@
       margin-bottom: 12px;
     }
     label { font-weight: 600; display: block; margin-bottom: 4px; }
-    input[type="password"], textarea {
+    input[type="password"], select, textarea {
       width: 100%;
       box-sizing: border-box;
       padding: 8px;
@@ -32,8 +31,9 @@
       border-radius: 6px;
       font-family: inherit;
       font-size: 13px;
+      margin-bottom: 6px;
     }
-    textarea { resize: vertical; min-height: 75px; }
+    textarea { resize: vertical; min-height: 75px; margin-bottom: 0; }
     .btn-group {
       display: flex;
       gap: 6px;
@@ -66,20 +66,42 @@
       border: 1px solid #e0e0e0;
       margin-top: 6px;
     }
-    .status { font-size: 11px; color: #5f6368; margin-top: 4px; }
+    .status { font-size: 11px; color: #5f6368; margin-top: 2px; }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin-top: 4px;
+      color: #3c4043;
+    }
   </style>
 </head>
 <body>
   <h3>✨ Gemini AI Assistant</h3>
 
-  <!-- Pengaturan API Key -->
+  <!-- Pengaturan API Key & Model -->
   <div class="card">
     <label for="apiKey">Gemini API Key</label>
-    <div style="display: flex; gap: 6px;">
-      <input type="password" id="apiKey" placeholder="Tempel API Key AIzaSy..." />
+    <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+      <input type="password" id="apiKey" placeholder="Tempel API Key AIzaSy..." style="margin-bottom: 0;" />
       <button onclick="simpanApiKey()">Simpan</button>
     </div>
     <div id="keyStatus" class="status"></div>
+
+    <label for="modelSelect" style="margin-top: 8px;">Pilih Model Gemini</label>
+    <select id="modelSelect">
+      <option value="gemini-3.8-flash">gemini-3.8-flash (Utama - Cepat)</option>
+      <option value="gemini-3.8-flash-lite">gemini-3.8-flash-lite (Anti Sibuk / Ringan)</option>
+      <option value="gemini-3.8-pro">gemini-3.8-pro (Penalaran Tinggi / Pro)</option>
+      <option value="gemini-3.5-flash">gemini-3.5-flash (Cadangan Stabil)</option>
+      <option value="gemini-3.5-pro">gemini-3.5-pro (Cadangan Pro)</option>
+    </select>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="autoFallback" checked />
+      <label for="autoFallback" style="font-weight: normal; margin: 0; cursor: pointer;">Otomatis ganti model jika server penuh</label>
+    </div>
   </div>
 
   <!-- Area Perintah -->
@@ -105,6 +127,6 @@
     <button class="success" onclick="sisipkanKeWord()">+ Sisipkan ke Dokumen Word</button>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
