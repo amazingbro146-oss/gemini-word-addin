@@ -1,9 +1,17 @@
+const DAFTAR_MODEL_CADANGAN = [
+  "gemini-3.8-flash",
+  "gemini-3.8-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-3.8-pro",
+  "gemini-3.5-pro"
+];
+
 Office.onReady((info) => {
   if (info.host === Office.HostType.Word) {
     const savedKey = localStorage.getItem("gemini_api_key");
     if (savedKey) {
       document.getElementById("apiKey").value = savedKey;
-      document.getElementById("keyStatus").innerText = "API Key tersimpan di browser.";
+      document.getElementById("keyStatus").innerText = "API Key tersimpan.";
     }
   }
 });
@@ -18,7 +26,6 @@ function simpanApiKey() {
   document.getElementById("keyStatus").innerText = "API Key berhasil disimpan!";
 }
 
-// Mengambil teks yang sedang diblok di dokumen Word
 async function prosesTeksTerpilih(instruksiAwal) {
   await Word.run(async (context) => {
     const selection = context.document.getSelection();
@@ -35,9 +42,22 @@ async function prosesTeksTerpilih(instruksiAwal) {
   });
 }
 
-// Mengirim prompt ke Google Gemini API (Model terbaru: gemini-3.8-flash)
+async function panggilApiModel(apiKey, modelName, prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }]
+    })
+  });
+  return await response.json();
+}
+
 async function kirimKeGemini() {
   const apiKey = localStorage.getItem("gemini_api_key") || document.getElementById("apiKey").value.trim();
+  const selectedModel = document.getElementById("modelSelect").value;
+  const useFallback = document.getElementById("autoFallback").checked;
   const prompt = document.getElementById("promptInput").value.trim();
   const outputBox = document.getElementById("outputBox");
 
@@ -50,36 +70,52 @@ async function kirimKeGemini() {
     return;
   }
 
-  outputBox.innerText = "Sedang memproses jawaban...";
-
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.candidates && data.candidates[0].content) {
-      outputBox.innerText = data.candidates[0].content.parts[0].text;
-    } else if (data.error) {
-      outputBox.innerText = "Error API: " + data.error.message;
-    } else {
-      outputBox.innerText = "Tidak ada respons dari Gemini.";
+  // Susun urutan model yang akan dicoba (model pilihan pertama, lalu cadangan jika dicentang)
+  let antreanModel = [selectedModel];
+  if (useFallback) {
+    for (const m of DAFTAR_MODEL_CADANGAN) {
+      if (!antreanModel.includes(m)) {
+        antreanModel.push(m);
+      }
     }
-  } catch (err) {
-    outputBox.innerText = "Gagal terhubung ke server Gemini: " + err.message;
+  }
+
+  for (let i = 0; i < antreanModel.length; i++) {
+    const modelSaatIni = antreanModel[i];
+    outputBox.innerText = `Sedang memproses dengan ${modelSaatIni}...`;
+
+    try {
+      const data = await panggilApiModel(apiKey, modelSaatIni, prompt);
+
+      if (data.candidates && data.candidates[0].content) {
+        outputBox.innerText = data.candidates[0].content.parts[0].text;
+        return; // Berhasil, hentikan perulangan
+      } else if (data.error) {
+        const pesanError = data.error.message || "";
+        const isHighDemand = pesanError.toLowerCase().includes("high demand") || data.error.code === 503 || data.error.code === 429;
+
+        // Jika server sibuk dan masih ada model cadangan di antrean, lanjut ke model berikutnya
+        if (isHighDemand && i < antreanModel.length - 1) {
+          outputBox.innerText = `${modelSaatIni} sedang penuh, mengalihkan otomatis ke ${antreanModel[i + 1]}...`;
+          continue;
+        } else {
+          outputBox.innerText = `Error API (${modelSaatIni}): ${pesanError}`;
+          return;
+        }
+      } else {
+        outputBox.innerText = "Tidak ada respons dari Gemini.";
+        return;
+      }
+    } catch (err) {
+      outputBox.innerText = "Gagal terhubung ke server Gemini: " + err.message;
+      return;
+    }
   }
 }
 
-// Menyisipkan teks jawaban ke posisi kursor di Word
 async function sisipkanKeWord() {
   const hasilTeks = document.getElementById("outputBox").innerText;
-  if (!hasilTeks || hasilTeks === "Jawaban akan muncul di sini..." || hasilTeks === "Sedang memproses jawaban...") {
+  if (!hasilTeks || hasilTeks === "Jawaban akan muncul di sini..." || hasilTeks.startsWith("Sedang memproses") || hasilTeks.includes("mengalihkan otomatis")) {
     return;
   }
 
